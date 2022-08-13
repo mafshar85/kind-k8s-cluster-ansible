@@ -10,4 +10,4 @@ then edit the [hosts](./inventory/servers) file and replace your machin ip ,also
 
 you can also edit cluster parameters from the [default folder](./roles/kind-cluster/defaults/main.yml)
 
-`ansible-playbook ansible-kind.yml  -i inventory/servers -K  -u <machine-username>`
+`ansible-playbook playbook.yml  -i inventory/servers -K  -u <machine-username>`
