@@ -1,0 +1,81 @@
+---
+
+- name: -------------- Set Shekan IP ------------------------
+  shell:
+    cmd: "echo 'nameserver 178.22.122.100\nnameserver 185.51.200.2' > /etc/resolv.conf"
+  become: true
+  tags: 
+    - shekan
+         
+- name: --------------------- Add GPG apt keys ---------------------
+  apt_key:
+    url: "{{ item }}"
+    state: present
+  become: true
+  loop:
+    - https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    - https://download.docker.com/linux/ubuntu/gpg
+  tags:
+    - gpg-repo
+
+- name: --------------------- Add Repositories ---------------------
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  become: true
+  loop:
+    - "deb https://download.docker.com/linux/ubuntu focal stable"
+    - "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+  tags:
+    - gpg-repo
+
+- name: --------------------- Install Prerequisite Packages ---------------------
+  apt:
+    name: "{{ required_packages }}"
+    state: present
+    update_cache: true
+  become: true
+  tags:
+    - pre
+
+- name: --------------------- install docker-ce ---------------------
+  apt:
+    name: "{{ docker_packages }}"
+    state: latest
+    update_cache: true
+  become: true
+  tags:
+    - docker
+
+- name: Download kind to specified location {{ kind_install_dir }}
+  get_url:
+    url: "{{ kind_repo }}"
+    dest: "{{ kind_install_dir }}/kind"
+    mode: 0755
+    force: true
+  become: true
+  tags:
+    - kind
+
+- name: --------------------- Add docker group to users {{ ansible_user }} groups ---------------------
+  user:
+    name: "{{ ansible_user }}"
+    append: true
+    groups: docker
+  become: true
+  tags:
+    - useradd
+
+- name: --------------------- Copy cluster config template ---------------------
+  template:
+    src: "{{ role_path }}/templates/cluster-config.yaml.j2"
+    dest: "/home/{{ansible_user}}/cluster-config.yaml"
+    mode: 0644
+  tags:
+    - create_cluster
+
+- name: --------------------- Create kind cluster ---------------------
+  shell: "kind create cluster --name {{ cluster_name }} --image kindest/node:{{kindest_node_version}} --config /home/{{ansible_user}}/cluster-config.yaml"
+  become: true
+  tags:
+   - create_cluster

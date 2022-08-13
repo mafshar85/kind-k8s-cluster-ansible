@@ -1,0 +1,5 @@
+- hosts: myserver
+  become_user: root 
+
+  roles:
+   - roles/kind-cluster

@@ -1,0 +1,7 @@
+---
+kind_version: latest
+kindest_node_version: v1.18.20
+kind_install_dir: /usr/local/bin
+cluster_name: kind-cluster
+control_nodes: 1
+worker_nodes: 1
